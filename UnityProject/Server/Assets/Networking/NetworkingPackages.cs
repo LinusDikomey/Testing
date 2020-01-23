@@ -4,15 +4,15 @@ using UnityEngine;
 public class NetConstants {
     public const int PORT = 27015;
 }
-//
+
 namespace Package {
 
     public class PackageID {
         public const byte 
             ID_CLIENT_BOUND = 1,
-            ID_SERVER_BOUND = 4,
-            ID_LOGIN = 2,
-            ID_LOGIN_RESPONSE = 3;
+            ID_SERVER_BOUND = 2,
+            ID_LOGIN = 3,
+            ID_LOGIN_RESPONSE = 4;
     }
 
     [Serializable]

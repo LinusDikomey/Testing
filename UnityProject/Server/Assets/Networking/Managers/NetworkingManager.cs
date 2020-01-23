@@ -58,6 +58,7 @@ public class ClientNetworker : Networker {
                     if (foundPlayer == null) {
                         foundPlayer = GameObject.Instantiate(playerPrefab);
                         foundPlayer.tag = "NetPlayer";
+                        foundPlayer.name = netPlayer.name;
                     }
                     foundPlayer.transform.position = netPlayer.position;
                 }
