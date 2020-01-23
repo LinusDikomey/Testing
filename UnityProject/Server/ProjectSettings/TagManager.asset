@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ButtonManager
   - YEET
+  - NetPlayer
   layers:
   - Default
   - TransparentFX
