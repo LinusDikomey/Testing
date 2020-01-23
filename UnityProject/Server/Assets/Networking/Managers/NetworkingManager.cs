@@ -28,6 +28,8 @@ public class ClientNetworker : Networker {
 
     ClientBoundData clientBound = new ClientBoundData();
 
+    string latestPackage = "Empty";
+
     public ClientNetworker(string playerName, string addressString, GameObject playerPrefab, ref GameObject playerObject) : base(NetConstants.PORT) {
         address = IPAddress.Parse(addressString);
         this.playerName = playerName;
@@ -60,6 +62,7 @@ public class ClientNetworker : Networker {
                     foundPlayer.transform.position = netPlayer.position;
                 }
                 GameObject.FindGameObjectWithTag("Respawn").GetComponent<Text>().text = "NetPlayers: " + clientBound.netPlayers;
+                GameObject.FindGameObjectWithTag("YEET").GetComponent<Text>().text = latestPackage;
                 break;
         }
     }
@@ -76,7 +79,7 @@ public class ClientNetworker : Networker {
 
     public override void PacketReceived(byte[] bytes, IPEndPoint endPoint) {
         byte[] objectBytes = new byte[bytes.Length - 1];
-        GameObject.FindGameObjectWithTag("YEET").GetComponent<Text>().text = "Received: " + encoding.GetString(bytes);
+        latestPackage = "Received: " + encoding.GetString(bytes);
         Array.Copy(bytes, 1, objectBytes, 0, bytes.Length-1);
         switch (bytes[0]) {
             case ID_LOGIN_RESPONSE:

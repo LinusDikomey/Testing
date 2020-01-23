@@ -661,4 +661,4 @@ ScriptsOnlyBuild:
   - Assets/Scenes/Menu.unity
   - Assets/Scenes/Client.unity
   - Assets/Scenes/Server.unity
-  playerPath: C:/Users/derwa/Documents/GitHub/Testing/Server.exe
+  playerPath: C:/Users/derwa/Documents/GitHub/Testing/Release/Server.exe
