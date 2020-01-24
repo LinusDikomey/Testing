@@ -6,7 +6,7 @@ using System;
 public abstract class NetBehaviour : MonoBehaviour {
 
     protected NetManager netManager;
-    private uint id;
+    protected uint id;
 
     private void Start() {
         netManager = (NetManager) GameObject.FindGameObjectWithTag("NetManager").GetComponent<NetManager>();

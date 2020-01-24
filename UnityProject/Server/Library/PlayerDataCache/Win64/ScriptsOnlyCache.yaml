@@ -3,6 +3,7 @@ ScriptsOnlyBuild:
     Assembly-CSharp.dll:
     - ButtonClick
     - ClientManager
+    - NetPlayer
     - ServerManager
     - SimpleController
     Unity.2D.Tilemap.Editor.dll:
@@ -61,6 +62,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 11156}
     - Class: 114
       Script: {instanceID: 11330}
+    - Class: 114
+      Script: {instanceID: 12338}
     - Class: 114
       Script: {instanceID: 12776}
     - Class: 114
@@ -149,9 +152,17 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 21
       Script: {instanceID: 0}
+    - Class: 23
+      Script: {instanceID: 0}
     - Class: 28
       Script: {instanceID: 0}
+    - Class: 33
+      Script: {instanceID: 0}
+    - Class: 43
+      Script: {instanceID: 0}
     - Class: 48
+      Script: {instanceID: 0}
+    - Class: 65
       Script: {instanceID: 0}
     - Class: 81
       Script: {instanceID: 0}
@@ -165,6 +176,8 @@ ScriptsOnlyBuild:
       Script: {instanceID: 11330}
     - Class: 114
       Script: {instanceID: 11822}
+    - Class: 114
+      Script: {instanceID: 12338}
     - Class: 114
       Script: {instanceID: 12776}
     - Class: 114

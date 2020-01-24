@@ -32,6 +32,7 @@ public class ServerNetworker : Networker {
     Dictionary<uint, IPEndPoint> connectedClients = new Dictionary<uint, IPEndPoint>();
     Dictionary<uint, NetBehaviour> netComponents;
     Dictionary<uint, NetPlayer.PlayerInput> playerInputs = new Dictionary<uint, NetPlayer.PlayerInput>();
+    Dictionary<Login, IPEndPoint> loginQueue = new Dictionary<Login, IPEndPoint>();
 
     uint nextID;
 
@@ -43,6 +44,16 @@ public class ServerNetworker : Networker {
     }
 
     public void Tick(uint tick) {
+        foreach(KeyValuePair<Login, IPEndPoint> queueItem in loginQueue) {
+            GameObject instance = GameObject.Instantiate(playerPrefab);
+            uint id = nextID++;
+            instance.GetComponent<NetPlayer>().SetID(id);
+            LoginResponse response = new LoginResponse(Response.LOGIN_OK, "Login success!", id);
+            SendPackage(ID_LOGIN_RESPONSE, PackageSerializer.GetBytes(response), queueItem.Value);
+            connectedClients.Add(id, queueItem.Value);
+        }
+        loginQueue.Clear();
+
         List<ComponentPacket> compPacketList = new List<ComponentPacket>();
         foreach(KeyValuePair<uint, NetBehaviour> netIDPair in netComponents) {
             byte[] bytes = netIDPair.Value.ServerUpdate();
@@ -86,16 +97,13 @@ public class ServerNetworker : Networker {
     }
 
     private void HandleLogin(Login login, IPEndPoint endPoint) {
+        loginQueue.Add(login, endPoint);
         Debug.Log("Login detected: " + endPoint);
-
-        GameObject instance = GameObject.Instantiate(playerPrefab);
-        uint id = nextID++;
-        instance.GetComponent<NetPlayer>().SetID(id);
-
-        LoginResponse response = new LoginResponse(Response.LOGIN_OK, "Login success!", id);
-        SendPackage(ID_LOGIN_RESPONSE, PackageSerializer.GetBytes(response), endPoint);
-        connectedClients.Add(id, endPoint);
     }
+
+    /*public void SetInput(NetPlayer.PlayerInput input, uint playerComponentID) {
+        playerInputs.Add(playerComponentID, input);
+    }*/
 
     public NetPlayer.PlayerInput GetPlayerInput(uint playerComponentID) {
         NetPlayer.PlayerInput input;
@@ -110,7 +118,7 @@ public class ServerManager : NetManager {
 
     public ServerManager() : base(Side.SERVER) {}
 
-    ServerNetworker serverNetworker;
+    public ServerNetworker serverNetworker;
 
     new public void Start() {
         base.Start();

@@ -105,7 +105,7 @@ public class ClientNetworker : Networker {
     private void HandleLoginResponse(LoginResponse response) {
         receivedLoginResponse = true;
         loginResponse = response;
-        state = State.WAITING_FOR_RESPONSE;
+        state = State.CONNECTED;
     }
 
     public void Connect() {
