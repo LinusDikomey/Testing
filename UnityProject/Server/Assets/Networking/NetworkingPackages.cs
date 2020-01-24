@@ -8,7 +8,7 @@ public class NetConstants {
 namespace Package {
 
     public class PackageID {
-        public const byte 
+        public const byte
             ID_CLIENT_BOUND = 1,
             ID_SERVER_BOUND = 2,
             ID_LOGIN = 3,
@@ -17,25 +17,36 @@ namespace Package {
 
     [Serializable]
     public struct ServerBoundData {
-        public int clientId;
-        public int lastProcessedTick;
-        public Player player;
+        public uint clientId;
+        public uint lastProcessedTick;
+        public NetPlayer.PlayerInput input;
 
-        public ServerBoundData(int clientId, int lastProcessedTick, Player player) {
+        public ServerBoundData(uint clientId, uint lastProcessedTick, NetPlayer.PlayerInput input) {
             this.clientId = clientId;
             this.lastProcessedTick = lastProcessedTick;
-            this.player = player;
+            this.input = input;
         }
     }
 
     [Serializable]
     public struct ClientBoundData {
-        public int tick;
-        public Player[] netPlayers;
+        public uint tick;
+        public ComponentPacket[] componentUpdates;
 
-        public ClientBoundData(int tick, Player[] netPlayers) {
+        public ClientBoundData(uint tick, ComponentPacket[] componentUpdates) {
             this.tick = tick;
-            this.netPlayers = netPlayers;
+            this.componentUpdates = componentUpdates;
+        }
+    }
+
+    [Serializable]
+    public struct ComponentPacket {
+        public uint componentID;
+        public byte[] bytes;
+
+        public ComponentPacket(uint componentID, byte[] bytes) {
+            this.componentID = componentID;
+            this.bytes = bytes;
         }
     }
 
@@ -63,15 +74,31 @@ namespace Package {
     public struct LoginResponse {
         public byte response;   //response
         public string msg;      //message
+        public uint clientID;
 
-        public LoginResponse(byte response, string msg) {
+        public LoginResponse(byte response, string msg, uint clientID) {
             this.response = response;
             this.msg = msg;
+            this.clientID = clientID;
         }
     }
-    
+
     public class Response {
         public const byte LOGIN_OK = 0, LOGIN_ERROR = 1;
-}
-    
+    }
+
+
+    public class PackageSerializer {
+        public static System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+
+        public static T GetObject<T>(byte[] bytes) {
+            T t = JsonUtility.FromJson<T>(encoding.GetString(bytes));
+            return t;
+        }
+
+        public static byte[] GetBytes(object obj) {
+            string json = JsonUtility.ToJson(obj);
+            return encoding.GetBytes(json);
+        }
+    }
 }

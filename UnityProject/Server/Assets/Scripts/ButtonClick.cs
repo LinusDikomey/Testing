@@ -14,6 +14,9 @@ public class ButtonClick : MonoBehaviour {
     public InputField nameInput;
 
     public void PlayButton() {
+        int i = 5;
+        Debug.Log(i++);
+        Debug.Log(i);
         Debug.Log("Play pressed");
         ip = ipInput.text;
         playerName = nameInput.text;

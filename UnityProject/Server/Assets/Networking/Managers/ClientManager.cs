@@ -16,81 +16,83 @@ using UnityEditor;
 public class ClientNetworker : Networker {
 
     List<GameObject> players = new List<GameObject>();
-
+    
     IPAddress address;
-    bool receivedLoginResponse = false;
     LoginResponse loginResponse;
+    bool receivedLoginResponse = false;
     State state = State.IDLING;
     string playerName;
     GameObject playerPrefab;
     GameObject playerObject;
-    int lastProcessedTick = -1;
+    uint lastProcessedTick = 0;
 
-    ClientBoundData clientBound = new ClientBoundData();
+    ClientBoundData lastClientBound = new ClientBoundData();
+    NetPlayer.PlayerInput input;
+    private Dictionary<uint, NetBehaviour> netComponents;
 
-    string latestPackage = "Empty";
-
-    public ClientNetworker(string playerName, string addressString, GameObject playerPrefab, ref GameObject playerObject) : base(NetConstants.PORT) {
+    public ClientNetworker(string playerName, string addressString, GameObject playerPrefab, ref GameObject playerObject, ref Dictionary<uint, NetBehaviour> netComponents) : base(NetConstants.PORT) {
         address = IPAddress.Parse(addressString);
         this.playerName = playerName;
         this.playerPrefab = playerPrefab;
         this.playerObject = playerObject;
+        this.netComponents = netComponents;
     }
 
-    public void ClientUpdate() {
+    public void Tick(uint tick) {
         switch (state) {
             case State.IDLING:
                 break;
             case State.WAITING_FOR_RESPONSE:
-                /*if (receivedLoginResponse) {
-                    GameObject.FindGameObjectWithTag("Respawn").GetComponent<Text>().text = "LoginResponse: " +loginResponse.response + "; " +loginResponse.msg;
-                }*/
+                if (receivedLoginResponse) {
+                    GameObject.FindGameObjectWithTag("Respawn").GetComponent<Text>().text = "LoginResponse: " + loginResponse.response + "; " + loginResponse.msg;
+                }
                 break;
             case State.CONNECTED:
-                CreateAndSendClientPackage();
-                foreach(Player netPlayer in clientBound.netPlayers) {
-                    GameObject foundPlayer = null;
-                    foreach (GameObject checkPlayer in GameObject.FindGameObjectsWithTag("NetPlayer")) {
-                        if (checkPlayer.name.Equals(netPlayer.name)) {
-                            foundPlayer = checkPlayer;
-                        }
-                    }
-                    if (foundPlayer == null) {
-                        foundPlayer = GameObject.Instantiate(playerPrefab);
-                        foundPlayer.tag = "NetPlayer";
-                        foundPlayer.name = netPlayer.name;
-                    }
-                    foundPlayer.transform.position = netPlayer.position;
-                }
-                GameObject.FindGameObjectWithTag("Respawn").GetComponent<Text>().text = "NetPlayers: " + clientBound.netPlayers;
-                GameObject.FindGameObjectWithTag("YEET").GetComponent<Text>().text = latestPackage;
+                ConnectedTick(tick);
                 break;
         }
+        
+    }
+
+    private void ConnectedTick(uint tick) {
+        Dictionary<uint, byte[]> componentUpdatePackets = new Dictionary<uint, byte[]>();
+        foreach (ComponentPacket compPacket in lastClientBound.componentUpdates) {
+            componentUpdatePackets.Add(compPacket.componentID, compPacket.bytes);
+            if(!netComponents.ContainsKey(compPacket.componentID)) {
+                //error
+                Debug.Log("Error, data with invalid component id was parsed");
+            } else {
+                netComponents[compPacket.componentID].ClientUpdate(compPacket.bytes);
+            }
+        }
+        foreach (KeyValuePair<uint, NetBehaviour> netComp in netComponents) {
+            netComp.Value.ClientUpdate(componentUpdatePackets[netComp.Key]);
+        }
+        CreateAndSendClientPackage();
     }
 
     private void CreateAndSendClientPackage() {
-        ServerBoundData package = new ServerBoundData(0, lastProcessedTick, new Player(playerName, playerObject.transform.position));
-        SendPackage(ID_SERVER_BOUND, GetBytes(package), address);
+        ServerBoundData package = new ServerBoundData(0, lastProcessedTick, input);
+        SendPackage(ID_SERVER_BOUND, PackageSerializer.GetBytes(package), address);
     }
 
     private void HandleClientBoundPackage(ClientBoundData package) {
-        clientBound = package;
+        lastClientBound = package;
         lastProcessedTick = package.tick;
     }
 
     public override void PacketReceived(byte[] bytes, IPEndPoint endPoint) {
         byte[] objectBytes = new byte[bytes.Length - 1];
-        latestPackage = "Received: " + encoding.GetString(bytes);
         Array.Copy(bytes, 1, objectBytes, 0, bytes.Length-1);
         switch (bytes[0]) {
             case ID_LOGIN_RESPONSE:
-                LoginResponse response = GetObject<LoginResponse>(objectBytes);
+                LoginResponse response = PackageSerializer.GetObject<LoginResponse>(objectBytes);
                 loginResponse = response;
                 Debug.Log("Response received " + response);
                 HandleLoginResponse(response);
                 break;
             case ID_CLIENT_BOUND:
-                ClientBoundData clientBound = GetObject<ClientBoundData>(objectBytes);
+                ClientBoundData clientBound = PackageSerializer.GetObject<ClientBoundData>(objectBytes);
                 HandleClientBoundPackage(clientBound);
                 Debug.Log("clientBound received: " + clientBound);
                 break;
@@ -103,7 +105,7 @@ public class ClientNetworker : Networker {
     private void HandleLoginResponse(LoginResponse response) {
         receivedLoginResponse = true;
         loginResponse = response;
-        state = State.CONNECTED;
+        state = State.WAITING_FOR_RESPONSE;
     }
 
     public void Connect() {
@@ -111,8 +113,12 @@ public class ClientNetworker : Networker {
         Login login = new Login {
             name = playerName
         };
-        SendPackage(ID_LOGIN, GetBytes(login), address);
+        SendPackage(ID_LOGIN, PackageSerializer.GetBytes(login), address);
         state = State.WAITING_FOR_RESPONSE;
+    }
+
+    public void SetInput(NetPlayer.PlayerInput input) {
+        this.input = input;
     }
 
     enum State {
@@ -126,32 +132,28 @@ public class ClientManager : NetManager {
 
     public ClientManager() : base(Side.CLIENT) {}
 
-    private int framesPerTick = 60;
     ClientNetworker clientNetworker;
     public GameObject playerPrefab;
     public GameObject playerObject;
 
-    void Start() {
+    new void Start() {
+        base.Start();
         GameObject.FindGameObjectWithTag("Respawn").GetComponent<Text>().text = "Empty";
         string playerName = GameObject.FindGameObjectWithTag("ButtonManager").GetComponent<ButtonClick>().playerName;
         string ip = GameObject.FindGameObjectWithTag("ButtonManager").GetComponent<ButtonClick>().ip;
-        clientNetworker = new ClientNetworker(playerName, ip, playerPrefab, ref playerObject);
+        clientNetworker = new ClientNetworker(playerName, ip, playerPrefab, ref playerObject, ref netComponents);
         clientNetworker.Connect();
     }
 
-    void Update() {
-
+    private void OnApplicationQuit() {
+        clientNetworker.Terminate();
     }
 
-    int counter = 0;
+    public void SetInput(NetPlayer.PlayerInput input) {
+        clientNetworker.SetInput(input);
+    }
 
-    private void FixedUpdate() {
-        counter++;
-        if (counter == framesPerTick) {
-
-            // SendPackage(bytes, address);
-            clientNetworker.ClientUpdate();
-            counter = 0;
-        }
+    public override void Tick(uint tick) {
+        clientNetworker.Tick(tick);
     }
 }
