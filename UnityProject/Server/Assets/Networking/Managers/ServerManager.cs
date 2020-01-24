@@ -94,7 +94,7 @@ public class ServerNetworker : Networker {
 
 public class ServerManager : MonoBehaviour {
 
-    public int framesPerTick = 2;
+    private int framesPerTick = 2;
     private Socket udpSocket;
     private Thread listener;
 
@@ -107,6 +107,7 @@ public class ServerManager : MonoBehaviour {
     int counter = 0;
     int tickCounter = 0;
     private void FixedUpdate() {
+        Debug.Log("YEET");
         counter++;
         if(counter == framesPerTick) {
             serverNetworker.ServerUpdate(tickCounter++);
