@@ -122,9 +122,11 @@ public class ClientNetworker : Networker {
     }
 }
 
-public class NetworkingManager : MonoBehaviour {
+public class ClientManager : NetManager {
 
-    private int framesPerTick = 2;
+    public ClientManager() : base(Side.CLIENT) {}
+
+    private int framesPerTick = 60;
     ClientNetworker clientNetworker;
     public GameObject playerPrefab;
     public GameObject playerObject;

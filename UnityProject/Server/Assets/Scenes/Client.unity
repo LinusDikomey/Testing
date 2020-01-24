@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 905020417}
   - component: {fileID: 905020416}
   m_Layer: 0
-  m_Name: NetworkingManager
+  m_Name: ClientManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -520,7 +520,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ac6f47dd84744a4a8b5d0b80eb30aa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  framesPerTick: 60
   playerPrefab: {fileID: 1953288225578940080, guid: 30fb51662c554a64eaccc881c4e551b7,
     type: 3}
   playerObject: {fileID: 433149321}

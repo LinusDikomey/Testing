@@ -92,9 +92,11 @@ public class ServerNetworker : Networker {
     }
 }
 
-public class ServerManager : MonoBehaviour {
+public class ServerManager : NetManager {
 
-    private int framesPerTick = 2;
+    public ServerManager() : base(Side.SERVER) {}
+
+    private int framesPerTick = 60;
     private Socket udpSocket;
     private Thread listener;
 

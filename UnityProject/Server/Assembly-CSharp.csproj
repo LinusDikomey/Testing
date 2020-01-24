@@ -63,8 +63,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Networking\Components\NetBehaviour.cs" />
+    <Compile Include="Assets\Networking\Components\NetPlayer.cs" />
+    <Compile Include="Assets\Networking\Managers\ClientManager.cs" />
+    <Compile Include="Assets\Networking\Managers\NetManager.cs" />
     <Compile Include="Assets\Networking\Managers\Networker.cs" />
-    <Compile Include="Assets\Networking\Managers\NetworkingManager.cs" />
     <Compile Include="Assets\Networking\Managers\ServerManager.cs" />
     <Compile Include="Assets\Networking\NetworkingPackages.cs" />
     <Compile Include="Assets\Scripts\ButtonClick.cs" />

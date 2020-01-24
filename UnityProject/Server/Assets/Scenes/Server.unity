@@ -368,7 +368,7 @@ GameObject:
   - component: {fileID: 687472063}
   m_Layer: 0
   m_Name: ServerManager
-  m_TagString: Untagged
+  m_TagString: NetManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -385,7 +385,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3975701e61031e64fbea564272d47cca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  framesPerTick: 60
 --- !u!4 &687472064
 Transform:
   m_ObjectHideFlags: 0
