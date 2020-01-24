@@ -124,7 +124,7 @@ public class ClientNetworker : Networker {
 
 public class NetworkingManager : MonoBehaviour {
 
-    public int framesPerTick = 60;
+    public int framesPerTick = 2;
     ClientNetworker clientNetworker;
     public GameObject playerPrefab;
     public GameObject playerObject;

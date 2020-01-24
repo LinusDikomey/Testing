@@ -94,7 +94,7 @@ public class ServerNetworker : Networker {
 
 public class ServerManager : MonoBehaviour {
 
-    public int framesPerTick = 60;
+    public int framesPerTick = 2;
     private Socket udpSocket;
     private Thread listener;
 
