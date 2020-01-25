@@ -26,6 +26,9 @@ public class ClientNetworker : Networker {
     GameObject playerObject;
     uint lastProcessedTick = 0;
 
+    bool setNewID = false;
+    uint newID = 0;
+
     ClientBoundData lastClientBound = new ClientBoundData(0, new ComponentPacket[0]);
     NetPlayer.PlayerInput input;
     private Dictionary<uint, NetBehaviour> netComponents;
@@ -41,6 +44,9 @@ public class ClientNetworker : Networker {
     }
 
     public void Tick(uint tick) {
+        if(setNewID) {
+            setNewID = false; playerObject.GetComponent<NetPlayer>().SetID(newID);
+        }
         switch (state) {
             case State.IDLING:
                 break;
@@ -68,7 +74,9 @@ public class ClientNetworker : Networker {
             }
         }
         foreach (KeyValuePair<uint, NetBehaviour> netComp in netComponents) {
-            netComp.Value.ClientUpdate(componentUpdatePackets[netComp.Key]);
+            if(componentUpdatePackets.ContainsKey(netComp.Key)) {
+                netComp.Value.ClientUpdate(componentUpdatePackets[netComp.Key]);
+            }
         }
         CreateAndSendClientPackage();
     }
@@ -105,7 +113,8 @@ public class ClientNetworker : Networker {
     }
 
     private void HandleLoginResponse(LoginResponse response) {
-        playerObject.GetComponent<NetPlayer>().SetID(response.clientID);
+        newID = response.clientID;
+        setNewID = true;
         receivedLoginResponse = true;
         loginResponse = response;
         clientID = response.clientID;
