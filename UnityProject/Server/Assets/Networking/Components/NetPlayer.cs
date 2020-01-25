@@ -58,6 +58,7 @@ public class NetPlayer : NetBehaviour {
     }
 
     public override byte[] ServerUpdate() {
+        Debug.Log("----------------------------: " + ((ServerManager)netManager).serverNetworker.PlayerInputExists(id) + "  |  " + id);
         if (((ServerManager)netManager).serverNetworker.PlayerInputExists(id)) {
             PlayerInput input = ((ServerManager)netManager).serverNetworker.GetPlayerInput(id);
 

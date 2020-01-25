@@ -105,6 +105,7 @@ public class ClientNetworker : Networker {
     }
 
     private void HandleLoginResponse(LoginResponse response) {
+        playerObject.GetComponent<NetPlayer>().SetID(response.clientID);
         receivedLoginResponse = true;
         loginResponse = response;
         clientID = response.clientID;

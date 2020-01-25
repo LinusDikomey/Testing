@@ -11,12 +11,17 @@ public abstract class NetBehaviour : MonoBehaviour {
     public void Start() {
         netManager = (NetManager) GameObject.FindGameObjectWithTag("NetManager").GetComponent<NetManager>();
         Debug.Log(netManager);
-        id = netManager.RegisterComponent(this);
+        if (id != 0)
+            netManager.RegisterComponentWithID(this, id);
+        else
+            id = netManager.RegisterComponent(this);
     }
 
     public void SetID(uint id) {
+        netManager.RemoveComponent(this.id);
         //netManager.SetComponentID(this.id, id);
         this.id = id;
+        netManager.RegisterComponentWithID(this, id);
     }
 
     public abstract void ClientUpdate(byte[] dataPackage);
