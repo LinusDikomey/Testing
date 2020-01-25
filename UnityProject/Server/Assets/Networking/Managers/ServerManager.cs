@@ -34,12 +34,12 @@ public class ServerNetworker : Networker {
     Dictionary<uint, NetPlayer.PlayerInput> playerInputs = new Dictionary<uint, NetPlayer.PlayerInput>();
     Dictionary<Login, IPEndPoint> loginQueue = new Dictionary<Login, IPEndPoint>();
 
-    uint nextID;
+    uint nextID  = 100;
 
     public ServerNetworker(GameObject playerPrefab, ref Dictionary<uint, NetBehaviour> netComponents, ref uint nextID) : base(NetConstants.PORT) {
         this.playerPrefab = playerPrefab;
         this.netComponents = netComponents;
-        this.nextID = nextID;
+        //this.nextID = nextID;
         StartListener();
     }
 

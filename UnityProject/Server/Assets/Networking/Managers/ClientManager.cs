@@ -30,6 +30,8 @@ public class ClientNetworker : Networker {
     NetPlayer.PlayerInput input;
     private Dictionary<uint, NetBehaviour> netComponents;
 
+    uint clientID = 9999;
+
     public ClientNetworker(string playerName, string addressString, GameObject playerPrefab, ref GameObject playerObject, ref Dictionary<uint, NetBehaviour> netComponents) : base(NetConstants.PORT) {
         address = IPAddress.Parse(addressString);
         this.playerName = playerName;
@@ -72,7 +74,7 @@ public class ClientNetworker : Networker {
     }
 
     private void CreateAndSendClientPackage() {
-        ServerBoundData package = new ServerBoundData(0, lastProcessedTick, input);
+        ServerBoundData package = new ServerBoundData(clientID, lastProcessedTick, input);
         SendPackage(ID_SERVER_BOUND, PackageSerializer.GetBytes(package), address);
     }
 
@@ -105,6 +107,7 @@ public class ClientNetworker : Networker {
     private void HandleLoginResponse(LoginResponse response) {
         receivedLoginResponse = true;
         loginResponse = response;
+        clientID = response.clientID;
         state = State.CONNECTED;
     }
 
