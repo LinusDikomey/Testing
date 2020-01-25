@@ -30,7 +30,8 @@ public class NetPlayer : NetBehaviour {
 
     private Transform playerTransform;
 
-    private void Start() {
+    new public void Start() {
+        base.Start();
         playerTransform = GetComponent<Transform>();
     }
 
@@ -54,13 +55,15 @@ public class NetPlayer : NetBehaviour {
     }
 
     public override byte[] ServerUpdate() {
-        PlayerInput input = ((ServerManager)netManager).serverNetworker.GetPlayerInput(id);
-        
-        Vector3 movement = new Vector3();
-        if (input.forward) movement.y = -0.05f;
-        else if (input.back) movement.y = +0.05f;
-        if (input.left) movement.x = -0.05f;
-        else if (input.right) movement.x = +0.05f;
+        if (((ServerManager)netManager).serverNetworker.PlayerInputExists(id)) {
+            PlayerInput input = ((ServerManager)netManager).serverNetworker.GetPlayerInput(id);
+
+            Vector3 movement = new Vector3();
+            if (input.forward) movement.y = -0.05f;
+            else if (input.back) movement.y = +0.05f;
+            if (input.left) movement.x = -0.05f;
+            else if (input.right) movement.x = +0.05f;
+        }
         ClientBound data = new ClientBound(playerTransform.position, playerTransform.rotation, playerTransform.localScale);
         return PackageSerializer.GetBytes(data);
     }

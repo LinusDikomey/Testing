@@ -55,6 +55,12 @@ public abstract class NetManager : MonoBehaviour {
         return nextID - 1;
     }
 
+    public void SetComponentID(uint oldID, uint newID) {
+        NetBehaviour comp = netComponents[oldID];
+        netComponents.Remove(oldID);
+        netComponents.Add(newID, comp);
+    }
+
     public void RemoveComponent(uint id) {
         netComponents.Remove(id);
     }

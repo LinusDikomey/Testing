@@ -8,12 +8,14 @@ public abstract class NetBehaviour : MonoBehaviour {
     protected NetManager netManager;
     protected uint id;
 
-    private void Start() {
+    public void Start() {
         netManager = (NetManager) GameObject.FindGameObjectWithTag("NetManager").GetComponent<NetManager>();
+        Debug.Log(netManager);
         id = netManager.RegisterComponent(this);
     }
 
     public void SetID(uint id) {
+        netManager.SetComponentID(this.id, id);
         this.id = id;
     }
 
