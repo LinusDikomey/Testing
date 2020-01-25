@@ -18,6 +18,10 @@ public abstract class NetBehaviour : MonoBehaviour {
     }
 
     public void SetID(uint id) {
+        if(netManager == null) {
+            this.id = id;
+            return;
+        }
         netManager.RemoveComponent(this.id);
         //netManager.SetComponentID(this.id, id);
         this.id = id;
