@@ -1,4 +1,5 @@
 ﻿using Package;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,7 @@ public class NetPlayer : NetBehaviour {
         }
     }
 
+    [Serializable]
     public struct PlayerInput {
         public bool forward, left, right, back;
 

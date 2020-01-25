@@ -1,10 +1,15 @@
-﻿using System.Collections;
+﻿using Package;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ButtonClick : MonoBehaviour {
+
+    private void Start() {
+        Debug.Log(PackageSerializer.encoding.GetString(PackageSerializer.GetBytes(new ServerBoundData(0, 12, new NetPlayer.PlayerInput(true, false, true, false)))));
+    }
 
     public string ip;
     public string playerName;
