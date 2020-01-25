@@ -48,6 +48,7 @@ public class ServerNetworker : Networker {
             GameObject instance = GameObject.Instantiate(playerPrefab);
             uint id = nextID++;
             instance.GetComponent<NetPlayer>().SetID(id);
+            netComponents.Add(id, instance.GetComponent<NetPlayer>());
             LoginResponse response = new LoginResponse(Response.LOGIN_OK, "Login success!", id);
             SendPackage(ID_LOGIN_RESPONSE, PackageSerializer.GetBytes(response), queueItem.Value);
             connectedClients.Add(id, queueItem.Value);
@@ -93,7 +94,9 @@ public class ServerNetworker : Networker {
             return;
         }
         //valid client
+        playerInputs.Remove(package.clientId);
         playerInputs.Add(package.clientId, package.input);
+        
     }
 
     private void HandleLogin(Login login, IPEndPoint endPoint) {

@@ -26,7 +26,7 @@ public class ClientNetworker : Networker {
     GameObject playerObject;
     uint lastProcessedTick = 0;
 
-    ClientBoundData lastClientBound = new ClientBoundData();
+    ClientBoundData lastClientBound = new ClientBoundData(0, new ComponentPacket[0]);
     NetPlayer.PlayerInput input;
     private Dictionary<uint, NetBehaviour> netComponents;
 

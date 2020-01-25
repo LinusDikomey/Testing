@@ -41,11 +41,21 @@ public class NetPlayer : NetBehaviour {
             playerTransform.rotation = data.rotation;
             playerTransform.localScale = data.scale;
         }
-        ((ClientManager)netManager).SetInput(new PlayerInput(false, false, false, false));
+        PlayerInput i = new PlayerInput(false, false, false, false);
+        if (Input.GetKey("W"))
+            i.forward = true;
+        else if (Input.GetKey("S"))
+                i.back = true;
+        if (Input.GetKey("A"))
+            i.left = true;
+        else if (Input.GetKey("D"))
+            i.right = true;
+        ((ClientManager)netManager).SetInput(i);
     }
 
     public override byte[] ServerUpdate() {
         PlayerInput input = ((ServerManager)netManager).serverNetworker.GetPlayerInput(id);
+        
         Vector3 movement = new Vector3();
         if (input.forward) movement.y = -0.05f;
         else if (input.back) movement.y = +0.05f;
