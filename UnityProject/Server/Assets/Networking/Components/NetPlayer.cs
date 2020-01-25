@@ -61,12 +61,13 @@ public class NetPlayer : NetBehaviour {
         Debug.Log("----------------------------: " + ((ServerManager)netManager).serverNetworker.PlayerInputExists(id) + "  |  " + id);
         if (((ServerManager)netManager).serverNetworker.PlayerInputExists(id)) {
             PlayerInput input = ((ServerManager)netManager).serverNetworker.GetPlayerInput(id);
-
+            Debug.Log("yeet:::::: " + input.forward + ", " + input.left + ", " + input.right + ", " + input.back);
             Vector3 movement = new Vector3();
             if (input.forward) movement.y = -0.05f;
             else if (input.back) movement.y = +0.05f;
             if (input.left) movement.x = -0.05f;
             else if (input.right) movement.x = +0.05f;
+            playerTransform.transform.Translate(movement);
         }
         ClientBound data = new ClientBound(playerTransform.position, playerTransform.rotation, playerTransform.localScale);
         return PackageSerializer.GetBytes(data);

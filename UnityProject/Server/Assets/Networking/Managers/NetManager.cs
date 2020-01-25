@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class NetManager : MonoBehaviour {
 
-    public const float tickRate = 1f;
+    public const float tickRate = 0.02f;
 
     Side side;
     protected Dictionary<uint, NetBehaviour> netComponents = new Dictionary<uint, NetBehaviour>();
@@ -27,7 +27,7 @@ public abstract class NetManager : MonoBehaviour {
     }
 
     protected void Update() {
-        //25 ticks: 0.02f
+        //50 ticks: 0.02f
         float delta = Time.realtimeSinceStartup - lastUpdateTime;
         tickTimeCounter += delta;
         while(tickTimeCounter > tickRate) {

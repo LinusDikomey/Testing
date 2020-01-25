@@ -5,7 +5,6 @@ ScriptsOnlyBuild:
     - ClientManager
     - NetPlayer
     - ServerManager
-    - SimpleController
     Unity.2D.Tilemap.Editor.dll:
     - UnityEditor.Tilemaps.GridPaintingState
     - UnityEditor.Tilemaps.GridPaletteBrushes
@@ -66,8 +65,6 @@ ScriptsOnlyBuild:
       Script: {instanceID: 12338}
     - Class: 114
       Script: {instanceID: 12776}
-    - Class: 114
-      Script: {instanceID: 12860}
     - Class: 114
       Script: {instanceID: 12922}
     - Class: 115
