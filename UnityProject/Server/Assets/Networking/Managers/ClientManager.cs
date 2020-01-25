@@ -117,7 +117,7 @@ public class ClientNetworker : Networker {
             name = playerName
         };
         SendPackage(ID_LOGIN, PackageSerializer.GetBytes(login), address);
-        state = State.WAITING_FOR_RESPONSE;
+        state = State.CONNECTED; //SHOULD BE WAITING FOR --------------------
     }
 
     public void SetInput(NetPlayer.PlayerInput input) {

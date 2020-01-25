@@ -43,15 +43,16 @@ public class NetPlayer : NetBehaviour {
             playerTransform.localScale = data.scale;
         }
         PlayerInput i = new PlayerInput(false, false, false, false);
-        if (Input.GetKey("W"))
+        if (Input.GetAxis("Horizontal") > 0.5f)
             i.forward = true;
-        else if (Input.GetKey("S"))
+        else if (Input.GetAxis("Horizontal") < -0.5f)
                 i.back = true;
-        if (Input.GetKey("A"))
+        if (Input.GetAxis("Vertical") < -0.5f)
             i.left = true;
-        else if (Input.GetKey("D"))
+        else if (Input.GetAxis("Vertical") > 0.5f)
             i.right = true;
         ((ClientManager)netManager).SetInput(i);
+        Debug.Log("Input set");
     }
 
     public override byte[] ServerUpdate() {
