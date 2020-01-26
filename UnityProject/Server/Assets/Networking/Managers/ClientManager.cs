@@ -62,6 +62,7 @@ public class ClientManager : NetManager {
     }
 
     public void PacketReceived(byte[] bytes, IPEndPoint endPoint) {
+        Debug.LogFormat("packet received: {0}, from {1}", PackageSerializer.encoding.GetString(bytes), endPoint);
         byte[] objectBytes = new byte[bytes.Length - 1];
         Array.Copy(bytes, 1, objectBytes, 0, bytes.Length - 1);
         switch (bytes[0]) {
@@ -139,7 +140,8 @@ public class ClientManager : NetManager {
             }
             foreach (ObjectInitializer objInit in data.objInits) {
                 GameObject prefab = Prefabs.prefabs[objInit.prefab];
-                GameObject.Instantiate(prefab);
+                GameObject init = GameObject.Instantiate(prefab);
+                init.GetComponent<NetIdentity>().Create(objInit.id, objInit.prefab);
             }
 
             foreach (ObjectPacket obj in data.objUpdates) {
