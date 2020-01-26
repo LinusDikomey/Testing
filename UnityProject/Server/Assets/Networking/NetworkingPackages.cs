@@ -19,9 +19,9 @@ namespace Package {
     public struct ServerBoundData {
         public uint clientId;
         public uint lastProcessedTick;
-        public NetPlayer.PlayerInput input;
+        public PlayerInput input;
 
-        public ServerBoundData(uint clientId, uint lastProcessedTick, NetPlayer.PlayerInput input) {
+        public ServerBoundData(uint clientId, uint lastProcessedTick, PlayerInput input) {
             this.clientId = clientId;
             this.lastProcessedTick = lastProcessedTick;
             this.input = input;
@@ -31,22 +31,46 @@ namespace Package {
     [Serializable]
     public struct ClientBoundData {
         public uint tick;
-        public ComponentPacket[] componentUpdates;
+        public ObjectInitializer[] objInits;
+        public uint[] objDestroys;
+        public ObjectPacket[] objUpdates;
 
-        public ClientBoundData(uint tick, ComponentPacket[] componentUpdates) {
+        public ClientBoundData(uint tick, ObjectInitializer[] objInits, uint[] objDestroys, ObjectPacket[] objUpdates) {
             this.tick = tick;
-            this.componentUpdates = componentUpdates;
+            this.objInits = objInits;
+            this.objDestroys = objDestroys;
+            this.objUpdates = objUpdates;
+        }
+    }
+
+    [Serializable]
+    public struct ObjectPacket {
+        public uint objID;
+        public ComponentPacket[] compPackets;
+
+        public ObjectPacket(uint objID, ComponentPacket[] compPackets) {
+            this.objID = objID;
+            this.compPackets = compPackets;
         }
     }
 
     [Serializable]
     public struct ComponentPacket {
-        public uint componentID;
         public byte[] bytes;
 
-        public ComponentPacket(uint componentID, byte[] bytes) {
-            this.componentID = componentID;
+        public ComponentPacket(byte[] bytes) {
             this.bytes = bytes;
+        }
+    }
+
+    [Serializable]
+    public struct ObjectInitializer {
+        public uint id;
+        public string prefab;
+
+        public ObjectInitializer(uint id, string prefab) {
+            this.id = id;
+            this.prefab = prefab;
         }
     }
 
@@ -80,6 +104,17 @@ namespace Package {
             this.response = response;
             this.msg = msg;
             this.clientID = clientID;
+        }
+    }
+
+    public struct PlayerInput {
+        public bool forward, left, right, back;
+
+        public PlayerInput(bool forward, bool left, bool right, bool back) {
+            this.forward = forward;
+            this.left = left;
+            this.right = right;
+            this.back = back;
         }
     }
 

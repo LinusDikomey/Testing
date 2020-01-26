@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 170535350}
   m_Layer: 5
   m_Name: Text
-  m_TagString: Respawn
+  m_TagString: Debug1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

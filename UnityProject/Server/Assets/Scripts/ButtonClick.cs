@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class ButtonClick : MonoBehaviour {
 
     private void Start() {
-        Debug.Log(PackageSerializer.encoding.GetString(PackageSerializer.GetBytes(new ServerBoundData(0, 12, new NetPlayer.PlayerInput(true, false, true, false)))));
+
     }
 
     public string ip;
@@ -19,9 +19,6 @@ public class ButtonClick : MonoBehaviour {
     public InputField nameInput;
 
     public void PlayButton() {
-        int i = 5;
-        Debug.Log(i++);
-        Debug.Log(i);
         Debug.Log("Play pressed");
         ip = ipInput.text;
         playerName = nameInput.text;

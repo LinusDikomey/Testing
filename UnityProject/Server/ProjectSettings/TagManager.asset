@@ -5,9 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - ButtonManager
-  - YEET
-  - NetPlayer
   - NetManager
+  - ConnectMenu
+  - Debug1
+  - Debug2
   layers:
   - Default
   - TransparentFX

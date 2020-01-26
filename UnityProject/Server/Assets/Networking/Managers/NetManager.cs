@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public abstract class NetManager : MonoBehaviour {
-
     public const float tickRate = 0.02f;
 
     Side side;
-    protected Dictionary<uint, NetBehaviour> netComponents = new Dictionary<uint, NetBehaviour>();
+    protected Dictionary<uint, NetIdentity> netIdentities = new Dictionary<uint, NetIdentity>();
     float lastUpdateTime;
     float tickTimeCounter = 0f;
-    protected uint nextID = 0;
+    private uint nextID = 1;
     private uint tick = 0;
 
     public NetManager(Side side) {
@@ -30,43 +29,38 @@ public abstract class NetManager : MonoBehaviour {
         //50 ticks: 0.02f
         float delta = Time.realtimeSinceStartup - lastUpdateTime;
         tickTimeCounter += delta;
-        while(tickTimeCounter > tickRate) {
+        while (tickTimeCounter > tickRate) {
             StartTick();
             tickTimeCounter -= tickRate;
         }
         lastUpdateTime = Time.realtimeSinceStartup;
-        
+
     }
 
     private void StartTick() {
-        Debug.LogFormat("Tick as: {0}, {1} components registered", side.ToString(), netComponents.Count);
+        GameObject.FindGameObjectWithTag("Debug1").GetComponent<Text>().text = "Tick #" + tick + 1 + " as: " + side.ToString() + ", " + netIdentities.Count + " netIdentities registered";
         Tick(tick++);
     }
 
     public abstract void Tick(uint tick);
 
     /// <summary> Returns networked id</summary>
-    public uint RegisterComponent(NetBehaviour netBehaviour) {
-        if(nextID >= 32768 ) { //32767 should also work, safer this way
-            Debug.LogError("ID overflow");
+    public void RegisterObject(NetIdentity netIdentity, uint id) {
+        if (netIdentities.ContainsKey(id)) {
+            Debug.LogError("NetIdentity with already existing id tried to register!");
         }
-        
-        netComponents.Add(nextID++, netBehaviour);
-        return nextID - 1;
-    }
-
-    public void RegisterComponentWithID(NetBehaviour netBehaviour, uint id) {
-        netComponents.Add(id, netBehaviour);
-    }
-
-    public void SetComponentID(uint oldID, uint newID) {
-        NetBehaviour comp = netComponents[oldID];
-        netComponents.Remove(oldID);
-        netComponents.Add(newID, comp);
+        netIdentities.Add(id, netIdentity);
     }
 
     public void RemoveComponent(uint id) {
-        netComponents.Remove(id);
+        netIdentities.Remove(id);
+    }
+
+    public uint GetFreeID() {
+        while (netIdentities.ContainsKey(nextID)) {
+            nextID++;
+        }
+        return nextID++;
     }
 
     public enum Side {
