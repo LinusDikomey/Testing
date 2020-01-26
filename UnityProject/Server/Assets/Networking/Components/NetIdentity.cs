@@ -46,11 +46,11 @@ public class NetIdentity : MonoBehaviour {
         netManager.RegisterObject(this, id);
     }
 
-    public void ClientTick(ComponentPacket[] compPackets) {
+    public void ClientTick(ComponentPacket[] compPackets, ref PlayerInput input) {
         if (compPackets == null) return;
         int index = 0;
         foreach(ComponentPacket compPacket in compPackets) {
-            netAttributes[index].ClientTick(compPacket.bytes);
+            netAttributes[index].ClientTick(compPacket.bytes, ref input);
 
             index++;
         }

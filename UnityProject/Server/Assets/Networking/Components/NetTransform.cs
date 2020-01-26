@@ -19,7 +19,7 @@ public class NetTransform : NetAttribute {
         }
     }
 
-    public override void ClientTick(byte[] dataPackage) {
+    public override void ClientTick(byte[] dataPackage, ref PlayerInput input) {
         if (dataPackage == null)
             return;
         Data data = PackageSerializer.GetObject<Data>(dataPackage);
@@ -28,6 +28,16 @@ public class NetTransform : NetAttribute {
         t.rotation = data.rotation;
         t.localScale = data.scale;
 
+        if(Input.GetKey("W")) {
+            input.forward = true;
+        } else if (Input.GetKey("S")) {
+            input.back = true;
+        }
+        if (Input.GetKey("A")) {
+            input.left = true;
+        } else if (Input.GetKey("D")) {
+            input.right = true;
+        }
     }
 
     public override byte[] ServerTick() {

@@ -28,7 +28,7 @@ public class ClientManager : NetManager {
 
     Networker networker;
     public GameObject playerPrefab;
-    private PlayerInput input;
+    private PlayerInput input = new PlayerInput(false, false, false, false);
 
     LoginResponse loginResponse;
     bool receivedLoginResponse = false;
@@ -133,6 +133,7 @@ public class ClientManager : NetManager {
     }
 
     private void ConnectedTick(uint tick) {
+        input = new PlayerInput(false, false, false, false);
         Dictionary<uint, byte[]> componentUpdatePackets = new Dictionary<uint, byte[]>();
         foreach (ClientBoundData data in clientBoundReceived) {
             foreach (uint destroyID in data.objDestroys) {
@@ -153,9 +154,10 @@ public class ClientManager : NetManager {
                     Debug.LogError("Nonexistent object update received: " + obj.objID);
                     continue;
                 }
-                netIdentities[obj.objID].ClientTick(obj.compPackets);
+                netIdentities[obj.objID].ClientTick(obj.compPackets, ref input);
             }
         }
         clientBoundReceived.Clear();
+        CreateAndSendClientPackage();
     }
 }

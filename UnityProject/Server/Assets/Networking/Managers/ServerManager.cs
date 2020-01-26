@@ -64,7 +64,7 @@ public class ServerManager : NetManager {
             LoginResponse response = new LoginResponse(Response.LOGIN_OK, "Login success!", id);
             networker.SendPacket(ID_LOGIN_RESPONSE, PackageSerializer.GetBytes(response), queueItem.Value);
             connectedClients.Add(id, queueItem.Value);
-            CreateObject("player", id);
+            CreateObject("player", id).GetComponent<Transform>().position = new Vector3();
         }
         loginQueue.Clear();
 

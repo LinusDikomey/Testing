@@ -38,7 +38,7 @@ public abstract class NetManager : MonoBehaviour {
     }
 
     private void StartTick() {
-        GameObject.FindGameObjectWithTag("Debug1").GetComponent<Text>().text = "Tick #" + tick + 1 + " as: " + side.ToString() + ", " + netIdentities.Count + " netIdentities registered";
+        GameObject.FindGameObjectWithTag("Debug1").GetComponent<Text>().text = "Tick #" + tick + " as: " + side.ToString() + ", " + netIdentities.Count + " netIdentities registered";
         Tick(tick++);
     }
 

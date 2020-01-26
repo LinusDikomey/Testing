@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Package;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ public abstract class NetAttribute {
         this.obj = obj;
     }
 
-    public abstract void ClientTick(byte[] dataPackage);
+    public abstract void ClientTick(byte[] dataPackage, ref PlayerInput input);
     public abstract byte[] ServerTick();
 
 }
