@@ -46,7 +46,7 @@ public class ClientManager : NetManager {
             Application.Quit();
         playerName = GameObject.FindGameObjectWithTag("ButtonManager").GetComponent<ButtonClick>().playerName;
         string ip = GameObject.FindGameObjectWithTag("ButtonManager").GetComponent<ButtonClick>().ip;
-        networker = new Networker(GetFreeTcpPort(), PacketReceived);
+        networker = new Networker(GetFreeTcpPort(), NetConstants.PORT, PacketReceived);
         address = IPAddress.Parse(ip);
         Debug.Log("ClientNetworker start");
     }

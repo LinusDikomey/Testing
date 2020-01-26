@@ -40,7 +40,7 @@ public class ServerManager : NetManager {
     uint nextID;
 
     public ServerManager() : base(Side.SERVER) {
-        networker = new Networker(NetConstants.PORT, (byte[] bytes, IPEndPoint packetReceived) => PacketReceived(bytes, packetReceived));
+        networker = new Networker(NetConstants.PORT, NetConstants.PORT, (byte[] bytes, IPEndPoint packetReceived) => PacketReceived(bytes, packetReceived));
     }
 
     new public void Start() {

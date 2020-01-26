@@ -13,15 +13,15 @@ using Package;
 
 public class Networker {
 
-    protected int port;
+    protected int remotePort;
     protected Socket socket;
     private Action<byte[], IPEndPoint> packetReceived;
 
-    public Networker(int port, Action<byte[], IPEndPoint> packetReceived) {
-        this.port = port;
+    public Networker(int port, int remotePort, Action<byte[], IPEndPoint> packetReceived) {
+        this.remotePort = remotePort;
         this.packetReceived = packetReceived;
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        socket.Bind(new IPEndPoint(IPAddress.Any, NetConstants.PORT));
+        socket.Bind(new IPEndPoint(IPAddress.Any, port));
     }
 
     private Thread listenThread;
@@ -67,7 +67,7 @@ public class Networker {
         Array.Copy(send, 0, withId, 1, send.Length);
 
         Debug.Log("Sent package: " + PackageSerializer.encoding.GetString(withId) + " to ip " + address);
-        IPEndPoint ep = new IPEndPoint(address, port);
+        IPEndPoint ep = new IPEndPoint(address, remotePort);
         socket.SendTo(withId, ep);
     }
 }
