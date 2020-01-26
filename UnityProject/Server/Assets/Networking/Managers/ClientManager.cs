@@ -139,6 +139,10 @@ public class ClientManager : NetManager {
                 GameObject.Destroy(netIdentities[destroyID].gameObject);
             }
             foreach (ObjectInitializer objInit in data.objInits) {
+                if(netIdentities.ContainsKey(objInit.id)) {
+                    Debug.LogError("Already existing id was tried to create. Id: " + objInit.id);
+                    continue;
+                }
                 GameObject prefab = Prefabs.prefabs[objInit.prefab];
                 GameObject init = GameObject.Instantiate(prefab);
                 init.GetComponent<NetIdentity>().Create(objInit.id, objInit.prefab);
@@ -146,11 +150,12 @@ public class ClientManager : NetManager {
 
             foreach (ObjectPacket obj in data.objUpdates) {
                 if (!netIdentities.ContainsKey(obj.objID)) {
-                    Debug.LogError("Nonexistent object update received!");
+                    Debug.LogError("Nonexistent object update received: " + obj.objID);
                     continue;
                 }
                 netIdentities[obj.objID].ClientTick(obj.compPackets);
             }
         }
+        clientBoundReceived.Clear();
     }
 }

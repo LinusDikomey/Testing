@@ -11,15 +11,26 @@ public class NetTransform : NetAttribute {
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 scale;
+
+        public Data(Vector3 position, Quaternion rotation, Vector3 scale) {
+            this.position = position;
+            this.rotation = rotation;
+            this.scale = scale;
+        }
     }
 
     public override void ClientTick(byte[] dataPackage) {
         if (dataPackage == null)
             return;
         Data data = PackageSerializer.GetObject<Data>(dataPackage);
+        Transform t = obj.GetComponent<Transform>();
+        t.position = data.position;
+        t.rotation = data.rotation;
+        t.localScale = data.scale;
+
     }
 
     public override byte[] ServerTick() {
-        return null;
+        return PackageSerializer.GetBytes(new Data(t.position, t.rotation, t.localScale));
     }
 }

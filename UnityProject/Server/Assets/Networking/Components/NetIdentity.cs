@@ -42,6 +42,7 @@ public class NetIdentity : MonoBehaviour {
             newComp.SetParentObj(gameObject);
             netAttributes.Add(newComp);
         }
+        Debug.LogErrorFormat("Registering {0} with id {1}", prefab, id);
         netManager.RegisterObject(this, id);
     }
 
