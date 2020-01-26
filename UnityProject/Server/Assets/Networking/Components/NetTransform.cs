@@ -28,14 +28,14 @@ public class NetTransform : NetAttribute {
         t.rotation = data.rotation;
         t.localScale = data.scale;
 
-        if(Input.GetKey("W")) {
+        if(Input.GetAxis("Vertical") < -0.5f) {
             input.forward = true;
-        } else if (Input.GetKey("S")) {
+        } else if (Input.GetAxis("Vertical") > 0.5f) {
             input.back = true;
         }
-        if (Input.GetKey("A")) {
+        if (Input.GetAxis("Horizontal") < -0.5f) {
             input.left = true;
-        } else if (Input.GetKey("D")) {
+        } else if (Input.GetAxis("Horizontal") > 0.5f) {
             input.right = true;
         }
     }

@@ -127,7 +127,12 @@ public class ClientManager : NetManager {
                 }
                 break;
             case State.CONNECTED:
-                ConnectedTick(tick);
+                try {
+                    ConnectedTick(tick);
+                } catch (InvalidOperationException e) {
+                    Debug.LogError("InvalidOperationException [caught]");
+                }
+                
                 break;
         }
     }
@@ -135,6 +140,7 @@ public class ClientManager : NetManager {
     private void ConnectedTick(uint tick) {
         input = new PlayerInput(false, false, false, false);
         Dictionary<uint, byte[]> componentUpdatePackets = new Dictionary<uint, byte[]>();
+        
         foreach (ClientBoundData data in clientBoundReceived) {
             foreach (uint destroyID in data.objDestroys) {
                 GameObject.Destroy(netIdentities[destroyID].gameObject);
