@@ -31,6 +31,7 @@ public class NetTransform : NetAttribute {
     }
 
     public override byte[] ServerTick() {
+        Transform t = obj.GetComponent<Transform>();
         return PackageSerializer.GetBytes(new Data(t.position, t.rotation, t.localScale));
     }
 }
