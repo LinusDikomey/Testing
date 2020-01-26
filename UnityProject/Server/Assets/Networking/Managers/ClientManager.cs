@@ -130,7 +130,7 @@ public class ClientManager : NetManager {
                 try {
                     ConnectedTick(tick);
                 } catch (InvalidOperationException e) {
-                    Debug.LogError("InvalidOperationException [caught]");
+                    Debug.LogError("InvalidOperationException [caught]: " + e);
                 }
                 
                 break;

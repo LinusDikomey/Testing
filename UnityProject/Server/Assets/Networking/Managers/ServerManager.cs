@@ -16,20 +16,20 @@ using UnityEngine.UI;
 public class ServerManager : NetManager {
 
     private struct ConnectedClient {
-        public Vector3 position;
         public IPEndPoint endPoint;
         public string name;
+        public bool receivedState;
 
-        public ConnectedClient(Vector3 position, IPEndPoint endPoint, string name) {
-            this.position = position;
+        public ConnectedClient(IPEndPoint endPoint, string name) {
             this.endPoint = endPoint;
             this.name = name;
+            receivedState = false;
         }
     }
 
     public GameObject playerPrefab;
 
-    Dictionary<uint, IPEndPoint> connectedClients = new Dictionary<uint, IPEndPoint>();
+    Dictionary<uint, ConnectedClient> connectedClients = new Dictionary<uint, ConnectedClient>();
     Dictionary<uint, PlayerInput> playerInputs = new Dictionary<uint, PlayerInput>();
     Dictionary<Login, IPEndPoint> loginQueue = new Dictionary<Login, IPEndPoint>();
 
@@ -63,7 +63,7 @@ public class ServerManager : NetManager {
             uint id = GetFreeID();
             LoginResponse response = new LoginResponse(Response.LOGIN_OK, "Login success!", id);
             networker.SendPacket(ID_LOGIN_RESPONSE, PackageSerializer.GetBytes(response), queueItem.Value);
-            connectedClients.Add(id, queueItem.Value);
+            connectedClients.Add(id, new ConnectedClient(queueItem.Value, queueItem.Key.name));
             CreateObject("player", id).GetComponent<Transform>().position = new Vector3();
         }
         loginQueue.Clear();
@@ -72,7 +72,7 @@ public class ServerManager : NetManager {
         List<ObjectInitializer> objInits = new List<ObjectInitializer>();
         int index = 0;
         foreach (KeyValuePair<uint, NetIdentity> netIDPair in netIdentities) {
-            objUpdates[index++] = netIDPair.Value.ServerTick();
+            objUpdates[index++] = netIDPair.Value.ServerTick(ref playerInputs);
             if(!netObjectsLastTick.Contains(netIDPair.Key)) {
                 objInits.Add(new ObjectInitializer(netIDPair.Key, netIDPair.Value.prefab));
             }
@@ -86,9 +86,23 @@ public class ServerManager : NetManager {
         foreach(uint id in netIdentities.Keys) {
             netObjectsLastTick.Add(id);
         }
-        ClientBoundData packet = new ClientBoundData(tick, objInits.ToArray(), destroyedObjects.ToArray(), objUpdates);
-        foreach (KeyValuePair<uint, IPEndPoint> currentClient in connectedClients) {
-            networker.SendPacket(ID_CLIENT_BOUND, PackageSerializer.GetBytes(packet), currentClient.Value);
+
+        foreach (KeyValuePair<uint, ConnectedClient> currentClient in connectedClients) {
+            List<ObjectInitializer> currentObjInit = objInits; //HIER IST KAPUTT WENN KAPUTT
+            if (!currentClient.Value.receivedState) {
+                currentObjInit.Clear();
+                foreach (KeyValuePair<uint, NetIdentity> identity in netIdentities) {
+                    if (identity.Key == currentClient.Key) continue;
+                    currentObjInit.Add(new ObjectInitializer(identity.Key, identity.Value.prefab));
+                }
+
+                ConnectedClient connected = connectedClients[currentClient.Key];
+                connected.receivedState = true;
+                connectedClients.Remove(currentClient.Key);
+                connectedClients.Add(currentClient.Key, connected);
+            }
+            ClientBoundData packet = new ClientBoundData(tick, currentObjInit.ToArray(), destroyedObjects.ToArray(), objUpdates);
+            networker.SendPacket(ID_CLIENT_BOUND, PackageSerializer.GetBytes(packet), currentClient.Value.endPoint);
         }
     }
 
@@ -110,12 +124,12 @@ public class ServerManager : NetManager {
     }
 
     private void HandleServerBound(ServerBoundData package, IPEndPoint endPoint) {
-        IPEndPoint realConnection;
-        if (!connectedClients.TryGetValue(package.clientId, out realConnection)) {
+        ConnectedClient connected;
+        if (!connectedClients.TryGetValue(package.clientId, out connected)) {
             Debug.LogError("Invalid client id sent server bound package");
             return;
         }
-        if (!realConnection.Equals(endPoint)) {
+        if (!connected.endPoint.Equals(endPoint)) {
             Debug.LogError("Server bound package from invalid ip received");
             return;
         }

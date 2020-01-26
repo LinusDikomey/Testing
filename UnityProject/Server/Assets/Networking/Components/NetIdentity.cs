@@ -39,7 +39,7 @@ public class NetIdentity : MonoBehaviour {
         netManager = (NetManager) GameObject.FindGameObjectWithTag("NetManager").GetComponent<NetManager>();
         foreach(byte netComp in netComponents) {
             NetAttribute newComp = GetNewInstanceByID(netComp);
-            newComp.SetParentObj(gameObject);
+            newComp.SetParentObj(gameObject, id);
             netAttributes.Add(newComp);
         }
         Debug.LogErrorFormat("Registering {0} with id {1}", prefab, id);
@@ -56,11 +56,11 @@ public class NetIdentity : MonoBehaviour {
         }
     }
 
-    public ObjectPacket ServerTick() {
+    public ObjectPacket ServerTick(ref Dictionary<uint, PlayerInput> input) {
         ComponentPacket[] compPackets = new ComponentPacket[netAttributes.Count];
         int index = 0;
         foreach(NetAttribute attrib in netAttributes) {
-            compPackets[index] = new ComponentPacket(attrib.ServerTick());
+            compPackets[index] = new ComponentPacket(attrib.ServerTick(ref input));
             index++;
         }
         return new ObjectPacket(id, compPackets);

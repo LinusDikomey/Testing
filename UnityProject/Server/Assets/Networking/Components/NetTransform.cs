@@ -40,8 +40,24 @@ public class NetTransform : NetAttribute {
         }
     }
 
-    public override byte[] ServerTick() {
+    public override byte[] ServerTick(ref Dictionary<uint, PlayerInput> inputs) {
         Transform t = obj.GetComponent<Transform>();
+        if(inputs.ContainsKey(id)) {
+            PlayerInput input = inputs[id];
+            Vector2 movement = new Vector2();
+            if(input.forward) {
+                movement.y += 0.05f;
+            }else if (input.back) {
+                movement.y -= 0.05f;
+            }
+            if (input.left) {
+                movement.x -= 0.05f;
+            } else if (input.right) {
+                movement.x += 0.05f;
+            }
+            t.Translate(new Vector3(movement.x, 0, movement.y));
+        }
+            
         return PackageSerializer.GetBytes(new Data(t.position, t.rotation, t.localScale));
     }
 }

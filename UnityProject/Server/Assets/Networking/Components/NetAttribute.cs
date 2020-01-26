@@ -8,16 +8,14 @@ public abstract class NetAttribute {
     protected NetManager netManager;
 
     protected GameObject obj;
+    protected uint id { private set; get; }
 
-    public NetAttribute() {
-        
-    }
-
-    public void SetParentObj(GameObject obj) {
+    public void SetParentObj(GameObject obj, uint id) {
         this.obj = obj;
+        this.id = id;
     }
 
     public abstract void ClientTick(byte[] dataPackage, ref PlayerInput input);
-    public abstract byte[] ServerTick();
+    public abstract byte[] ServerTick(ref Dictionary<uint, PlayerInput> inputs);
 
 }
