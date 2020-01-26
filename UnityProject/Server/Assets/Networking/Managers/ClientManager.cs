@@ -38,7 +38,7 @@ public class ClientManager : NetManager {
     uint clientID;
 
     IPAddress address;
-    List<ClientBoundData> clientBoundReceived = new List<ClientBoundData>();
+    volatile List<ClientBoundData> clientBoundReceived = new List<ClientBoundData>();
 
     new void Start() {
         base.Start();
@@ -140,6 +140,8 @@ public class ClientManager : NetManager {
     private void ConnectedTick(uint tick) {
         input = new PlayerInput(false, false, false, false);
         Dictionary<uint, byte[]> componentUpdatePackets = new Dictionary<uint, byte[]>();
+
+        ClientBoundData[] packetCopy = clientBoundReceived.ToArray();
         
         foreach (ClientBoundData data in clientBoundReceived) {
             foreach (uint destroyID in data.objDestroys) {

@@ -107,6 +107,8 @@ namespace Package {
         }
     }
 
+
+    [Serializable]
     public struct PlayerInput {
         public bool forward, left, right, back;
 
