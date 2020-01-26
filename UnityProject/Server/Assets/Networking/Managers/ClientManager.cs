@@ -143,7 +143,7 @@ public class ClientManager : NetManager {
 
         ClientBoundData[] packetCopy = clientBoundReceived.ToArray();
         
-        foreach (ClientBoundData data in clientBoundReceived) {
+        foreach (ClientBoundData data in packetCopy) {
             foreach (uint destroyID in data.objDestroys) {
                 GameObject.Destroy(netIdentities[destroyID].gameObject);
             }
