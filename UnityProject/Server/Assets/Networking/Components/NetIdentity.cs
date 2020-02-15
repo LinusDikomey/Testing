@@ -8,12 +8,15 @@ public class NetIdentity : MonoBehaviour {
 
     public class NetAttribIDs {
         public const byte ID_TRANSFORM = 0;
+        public const byte ID_PLAYER = 1;
     }
 
     public static NetAttribute GetNewInstanceByID(byte id) {
         switch (id) {
             case NetAttribIDs.ID_TRANSFORM:
                 return new NetTransform();
+            case NetAttribIDs.ID_PLAYER:
+                return new NetPlayer();
             default:
                 return null;
         }
@@ -27,10 +30,16 @@ public class NetIdentity : MonoBehaviour {
     [SerializeField]
     public string prefab { get; private set; }
 
-    private List<NetAttribute> netAttributes = new List<NetAttribute>();
+    bool created = false;
+    public string autoPrefab;
+
+    public List<NetAttribute> netAttributes = new List<NetAttribute>();
 
     void Start() {
-        
+        if(!created) {
+            netManager = GameObject.FindGameObjectWithTag("NetManager").GetComponent<NetManager>();
+            Create(netManager.GetFreeID(), autoPrefab);
+        }
     }
 
     public void Create(uint id, string prefab) {
@@ -41,9 +50,11 @@ public class NetIdentity : MonoBehaviour {
             NetAttribute newComp = GetNewInstanceByID(netComp);
             newComp.SetParentObj(gameObject, id);
             netAttributes.Add(newComp);
+            newComp.Start();
         }
         Debug.LogErrorFormat("Registering {0} with id {1}", prefab, id);
         netManager.RegisterObject(this, id);
+        created = true;
     }
 
     public void ClientTick(ComponentPacket[] compPackets, ref PlayerInput input) {

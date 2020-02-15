@@ -18,11 +18,13 @@ namespace Package {
     [Serializable]
     public struct ServerBoundData {
         public uint clientId;
+        public uint tick;
         public uint lastProcessedTick;
         public PlayerInput input;
 
-        public ServerBoundData(uint clientId, uint lastProcessedTick, PlayerInput input) {
+        public ServerBoundData(uint clientId, uint tick, uint lastProcessedTick, PlayerInput input) {
             this.clientId = clientId;
+            this.tick = tick;
             this.lastProcessedTick = lastProcessedTick;
             this.input = input;
         }
@@ -31,12 +33,16 @@ namespace Package {
     [Serializable]
     public struct ClientBoundData {
         public uint tick;
+        public uint lastReceivedTick;
+        public uint timeSinceTick;
         public ObjectInitializer[] objInits;
         public uint[] objDestroys;
         public ObjectPacket[] objUpdates;
 
-        public ClientBoundData(uint tick, ObjectInitializer[] objInits, uint[] objDestroys, ObjectPacket[] objUpdates) {
-            this.tick = tick;
+        public ClientBoundData(uint currentTick, uint lastReceivedTick, uint timeSinceTick, ObjectInitializer[] objInits, uint[] objDestroys, ObjectPacket[] objUpdates) {
+            this.tick = currentTick;
+            this.lastReceivedTick = lastReceivedTick;
+            this.timeSinceTick = timeSinceTick;
             this.objInits = objInits;
             this.objDestroys = objDestroys;
             this.objUpdates = objUpdates;

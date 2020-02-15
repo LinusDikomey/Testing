@@ -27,37 +27,10 @@ public class NetTransform : NetAttribute {
         t.position = data.position;
         t.rotation = data.rotation;
         t.localScale = data.scale;
-
-        if(Input.GetAxis("Vertical") < -0.5f) {
-            input.forward = true;
-        } else if (Input.GetAxis("Vertical") > 0.5f) {
-            input.back = true;
-        }
-        if (Input.GetAxis("Horizontal") < -0.5f) {
-            input.left = true;
-        } else if (Input.GetAxis("Horizontal") > 0.5f) {
-            input.right = true;
-        }
     }
 
     public override byte[] ServerTick(ref Dictionary<uint, PlayerInput> inputs) {
-        Transform t = obj.GetComponent<Transform>();
-        if(inputs.ContainsKey(id)) {
-            PlayerInput input = inputs[id];
-            Vector2 movement = new Vector2();
-            if(input.forward) {
-                movement.y += 0.05f;
-            }else if (input.back) {
-                movement.y -= 0.05f;
-            }
-            if (input.left) {
-                movement.x -= 0.05f;
-            } else if (input.right) {
-                movement.x += 0.05f;
-            }
-            t.Translate(new Vector3(movement.x, 0, movement.y));
-        }
-            
+        Transform t = obj.GetComponent<Transform>();     
         return PackageSerializer.GetBytes(new Data(t.position, t.rotation, t.localScale));
     }
 }

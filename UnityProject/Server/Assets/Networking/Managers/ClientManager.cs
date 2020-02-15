@@ -16,6 +16,10 @@ using System.Net.Sockets;
 
 public class ClientManager : NetManager {
 
+    private const int RTT_AVERAGE_COUNT = 20;
+    private const int DEVIATION_TOLERANCE = 100;
+    private const short RTT_SAFETY_BUFFER = 50; //MS
+
     enum State {
         WAITING_FOR_RESPONSE,
         CONNECTED,
@@ -27,7 +31,6 @@ public class ClientManager : NetManager {
     }
 
     Networker networker;
-    public GameObject playerPrefab;
     private PlayerInput input = new PlayerInput(false, false, false, false);
 
     LoginResponse loginResponse;
@@ -36,6 +39,13 @@ public class ClientManager : NetManager {
     string playerName;
     uint lastProcessedTick = 0;
     uint clientID;
+    //uint[] lastRTTs = new uint[RTT_AVERAGE_COUNT];
+    //uint rttAverage;
+
+    uint connectedTickCounter;
+
+    Dictionary<uint, long> sentPackageTimestamps = new Dictionary<uint, long>();
+    string debug;
 
     IPAddress address;
     volatile List<ClientBoundData> clientBoundReceived = new List<ClientBoundData>();
@@ -58,7 +68,7 @@ public class ClientManager : NetManager {
         Login login = new Login(playerName);
 
         networker.SendPacket(ID_LOGIN, PackageSerializer.GetBytes(login), address);
-        state = State.WAITING_FOR_RESPONSE; //SHOULD BE WAITING FOR --------------------
+        state = State.WAITING_FOR_RESPONSE;
     }
 
     public void PacketReceived(byte[] bytes, IPEndPoint endPoint) {
@@ -84,7 +94,8 @@ public class ClientManager : NetManager {
     }
 
     private void CreateAndSendClientPackage() {
-        ServerBoundData package = new ServerBoundData(clientID, lastProcessedTick, input);
+        ServerBoundData package = new ServerBoundData(clientID, tick, lastProcessedTick, input);
+        sentPackageTimestamps.Add(tick, GetTimestamp());
         networker.SendPacket(ID_SERVER_BOUND, PackageSerializer.GetBytes(package), address);
     }
 
@@ -97,9 +108,27 @@ public class ClientManager : NetManager {
         state = State.CONNECTED;
     }
 
+    uint lastSyncedTick = 0;
+    string noToleranceText = "";
+
     private void HandleClientBoundPackage(ClientBoundData package) {
         clientBoundReceived.Add(package);
-        lastProcessedTick = package.tick;
+        uint rtt;
+        if(package.lastReceivedTick != 0) {
+            rtt = (uint) (GetTimestamp() - sentPackageTimestamps[package.lastReceivedTick] - package.timeSinceTick);
+            long targetTicksMillis = package.tick * TICKRATE + rtt + RTT_SAFETY_BUFFER; //should be + bufferedRTTAverage
+            long clientTicksMillis = tick * TICKRATE + (GetTimestamp() - lastTickTimestamp);
+            
+            debug = "\n tTick: " + targetTicksMillis / TICKRATE;
+            long difference = clientTicksMillis - targetTicksMillis;
+            debug += " | difference: " + difference;
+
+            if(Math.Abs(difference) > DEVIATION_TOLERANCE) {
+                SyncTick((uint) (targetTicksMillis / TICKRATE), GetTimestamp() - targetTicksMillis % TICKRATE);
+                lastSyncedTick = tick;
+            }
+            debug += "\n Last sync: " + lastSyncedTick + ", " + noToleranceText;
+        }
     }
     private void OnApplicationQuit() {
         networker.Terminate();
@@ -118,6 +147,7 @@ public class ClientManager : NetManager {
     }
 
     public override void Tick(uint tick) {
+        GameObject.FindGameObjectWithTag("Debug2").GetComponent<Text>().text = debug;
         switch (state) {
             case State.IDLING:
                 break;
@@ -130,7 +160,7 @@ public class ClientManager : NetManager {
                 try {
                     ConnectedTick(tick);
                 } catch (InvalidOperationException e) {
-                    Debug.LogError("InvalidOperationException [caught]: " + e);
+                    Debug.LogError("[caught] InvalidOperationException: " + e);
                 }
                 
                 break;
@@ -164,6 +194,7 @@ public class ClientManager : NetManager {
                 }
                 netIdentities[obj.objID].ClientTick(obj.compPackets, ref input);
             }
+            lastProcessedTick = data.tick;
         }
         clientBoundReceived.Clear();
         CreateAndSendClientPackage();

@@ -15,6 +15,7 @@ public abstract class NetAttribute {
         this.id = id;
     }
 
+    public virtual void Start() {}
     public abstract void ClientTick(byte[] dataPackage, ref PlayerInput input);
     public abstract byte[] ServerTick(ref Dictionary<uint, PlayerInput> inputs);
 

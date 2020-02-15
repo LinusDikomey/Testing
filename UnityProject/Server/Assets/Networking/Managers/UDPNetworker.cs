@@ -47,14 +47,14 @@ public class Networker {
                 Debug.Log("Received broadcast from:" + (endPoint as IPEndPoint) + "  |  Message: " + PackageSerializer.encoding.GetString(bytes));
             }
         } catch (SocketException e) {
-            Console.WriteLine(e);
+            Debug.LogError(e);
         } finally {
             socket.Close();
         }
     }
 
     public void SendPacket(byte id, byte[] send, IPEndPoint endPoint) {
-        Debug.Log("Sending package: " + PackageSerializer.encoding.GetString(send));
+        //Debug.Log("Sending package: " + PackageSerializer.encoding.GetString(send));
         byte[] withId = new byte[send.Length + 1];
         withId[0] = id;
         Array.Copy(send, 0, withId, 1, send.Length);

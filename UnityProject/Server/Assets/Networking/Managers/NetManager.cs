@@ -1,24 +1,30 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public abstract class NetManager : MonoBehaviour {
-    public const float tickRate = 0.02f;
+    public const uint TICKRATE = 25; //ALL tick time units in milliseconds
 
     Side side;
     protected Dictionary<uint, NetIdentity> netIdentities = new Dictionary<uint, NetIdentity>();
-    float lastUpdateTime;
-    float tickTimeCounter = 0f;
+    long tickTimeCounter = 0;
     private uint nextID = 1;
-    private uint tick = 0;
+    public uint tick { get; private set; } = 1;
+
+    protected long lastTickTimestamp { get; private set; } = 0;
+    private long lastUpdateTimestamp = 0;
+
+    //private Stopwatch stopwatch;
+    //Timer timer;
 
     public NetManager(Side side) {
         this.side = side;
     }
 
     protected void Start() {
-        lastUpdateTime = Time.realtimeSinceStartup;
+        lastTickTimestamp = GetTimestamp();
+        lastUpdateTimestamp = GetTimestamp();
     }
 
     public Side GetSide() {
@@ -26,20 +32,15 @@ public abstract class NetManager : MonoBehaviour {
     }
 
     protected void Update() {
-        //50 ticks: 0.02f
-        float delta = Time.realtimeSinceStartup - lastUpdateTime;
+        long delta = GetTimestamp() - lastUpdateTimestamp;
         tickTimeCounter += delta;
-        while (tickTimeCounter > tickRate) {
-            StartTick();
-            tickTimeCounter -= tickRate;
+        while (tickTimeCounter > TICKRATE) {
+            GameObject.FindGameObjectWithTag("Debug1").GetComponent<Text>().text = ("Tick #" + tick + " as " + side + " at " + GetTimestamp());
+            Tick(tick++);
+            tickTimeCounter -= TICKRATE;
+            lastTickTimestamp += TICKRATE;
         }
-        lastUpdateTime = Time.realtimeSinceStartup;
-
-    }
-
-    private void StartTick() {
-        GameObject.FindGameObjectWithTag("Debug1").GetComponent<Text>().text = "Tick #" + tick + " as: " + side.ToString() + ", " + netIdentities.Count + " netIdentities registered";
-        Tick(tick++);
+        lastUpdateTimestamp = GetTimestamp();
     }
 
     public abstract void Tick(uint tick);
@@ -47,7 +48,7 @@ public abstract class NetManager : MonoBehaviour {
     /// <summary> Returns networked id</summary>
     public void RegisterObject(NetIdentity netIdentity, uint id) {
         if (netIdentities.ContainsKey(id)) {
-            Debug.LogError("NetIdentity with already existing id tried to register!");
+            UnityEngine.Debug.LogError("NetIdentity with already existing id tried to register!");
         }
         netIdentities.Add(id, netIdentity);
     }
@@ -66,5 +67,16 @@ public abstract class NetManager : MonoBehaviour {
     public enum Side {
         CLIENT,
         SERVER
+    }
+
+    protected long GetTimestamp() {
+        return DateTimeOffset.Now.ToUnixTimeMilliseconds();
+    }
+
+    protected void SyncTick(uint lastTick, long lastTickTimestamp) {
+        tickTimeCounter = 0;
+        tick = lastTick;
+        this.lastTickTimestamp = lastTickTimestamp;
+        this.lastUpdateTimestamp = lastTickTimestamp;
     }
 }

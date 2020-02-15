@@ -6,9 +6,13 @@ public class Prefabs : MonoBehaviour {
 
     public static Dictionary<string, GameObject> prefabs = new Dictionary<string, GameObject>();
 
+    public GameObject cube;
+    public GameObject ball;
     public GameObject player;
 
     void Start() {
+        prefabs.Add("cube", cube);
+        prefabs.Add("ball", ball);
         prefabs.Add("player", player);
     }
 

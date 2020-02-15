@@ -15,29 +15,39 @@ using UnityEngine.UI;
 
 public class ServerManager : NetManager {
 
-    private struct ConnectedClient {
-        public IPEndPoint endPoint;
-        public string name;
-        public bool receivedState;
+    private struct FrameInputs {
+        public Dictionary<uint, PlayerInput> playerInputs;
 
-        public ConnectedClient(IPEndPoint endPoint, string name) {
-            this.endPoint = endPoint;
-            this.name = name;
-            receivedState = false;
+        public FrameInputs(Dictionary<uint, PlayerInput> inputs) {
+            playerInputs = inputs;
         }
     }
 
-    public GameObject playerPrefab;
+    private struct ConnectedClient {
+        public uint id;
+        public IPEndPoint endPoint;
+        public string name;
+        public bool receivedState;
+        public uint lastClientTick;
+        public long lastTickTime;
+
+        public ConnectedClient(uint id, IPEndPoint endPoint, string name) {
+            this.id = id;
+            this.endPoint = endPoint;
+            this.name = name;
+            receivedState = false;
+            lastClientTick = 0;
+            lastTickTime = 0;
+        }
+    }
 
     Dictionary<uint, ConnectedClient> connectedClients = new Dictionary<uint, ConnectedClient>();
-    Dictionary<uint, PlayerInput> playerInputs = new Dictionary<uint, PlayerInput>();
+    Dictionary<uint, FrameInputs> frameInputs = new Dictionary<uint, FrameInputs>();
     Dictionary<Login, IPEndPoint> loginQueue = new Dictionary<Login, IPEndPoint>();
 
     Networker networker;
 
     private List<uint> netObjectsLastTick = new List<uint>();
-
-    uint nextID;
 
     public ServerManager() : base(Side.SERVER) {
         networker = new Networker(NetConstants.PORT, NetConstants.PORT, (byte[] bytes, IPEndPoint packetReceived) => PacketReceived(bytes, packetReceived));
@@ -59,24 +69,32 @@ public class ServerManager : NetManager {
     }
 
     public override void Tick(uint tick) {
+        //login queue
         foreach (KeyValuePair<Login, IPEndPoint> queueItem in loginQueue) {
             uint id = GetFreeID();
             LoginResponse response = new LoginResponse(Response.LOGIN_OK, "Login success!", id);
             networker.SendPacket(ID_LOGIN_RESPONSE, PackageSerializer.GetBytes(response), queueItem.Value);
-            connectedClients.Add(id, new ConnectedClient(queueItem.Value, queueItem.Key.name));
-            CreateObject("player", id).GetComponent<Transform>().position = new Vector3();
+            connectedClients.Add(id, new ConnectedClient(id, queueItem.Value, queueItem.Key.name));
+            GameObject player = GameObject.Instantiate(Prefabs.prefabs["player"]);
+            player.GetComponent<NetIdentity>().Create(id, "player");
+            NetPlayer netPlayer = (NetPlayer) player.GetComponent<NetIdentity>().netAttributes[0];
+            netPlayer.name = queueItem.Key.name;
+
         }
         loginQueue.Clear();
 
+        //Update packets
         ObjectPacket[] objUpdates = new ObjectPacket[netIdentities.Count];
         List<ObjectInitializer> objInits = new List<ObjectInitializer>();
         int index = 0;
+        FrameInputs inputsStruct = frameInputs.ContainsKey(tick) ? frameInputs[tick] : new FrameInputs(new Dictionary<uint, PlayerInput>());
         foreach (KeyValuePair<uint, NetIdentity> netIDPair in netIdentities) {
-            objUpdates[index++] = netIDPair.Value.ServerTick(ref playerInputs);
+            objUpdates[index++] = netIDPair.Value.ServerTick(ref inputsStruct.playerInputs);
             if(!netObjectsLastTick.Contains(netIDPair.Key)) {
                 objInits.Add(new ObjectInitializer(netIDPair.Key, netIDPair.Value.prefab));
             }
         }
+        //destroy packets
         List<uint> destroyedObjects = new List<uint>();
         foreach(uint id in netObjectsLastTick) {
             if (!netIdentities.ContainsKey(id))
@@ -87,12 +105,13 @@ public class ServerManager : NetManager {
             netObjectsLastTick.Add(id);
         }
 
+        //create and send packets
         foreach (KeyValuePair<uint, ConnectedClient> currentClient in connectedClients) {
-            List<ObjectInitializer> currentObjInit = objInits; //HIER IST KAPUTT WENN KAPUTT
+            List<ObjectInitializer> currentObjInit = new List<ObjectInitializer>(); //HIER IST KAPUTT WENN KAPUTT
             if (!currentClient.Value.receivedState) {
                 currentObjInit.Clear();
                 foreach (KeyValuePair<uint, NetIdentity> identity in netIdentities) {
-                    if (identity.Key == currentClient.Key) continue;
+                    //if (identity.Key == currentClient.Key) continue;
                     currentObjInit.Add(new ObjectInitializer(identity.Key, identity.Value.prefab));
                 }
 
@@ -100,14 +119,18 @@ public class ServerManager : NetManager {
                 connected.receivedState = true;
                 connectedClients.Remove(currentClient.Key);
                 connectedClients.Add(currentClient.Key, connected);
+            } else {
+                foreach(ObjectInitializer current in objInits) {
+                    currentObjInit.Add(current);
+                }
             }
-            ClientBoundData packet = new ClientBoundData(tick, currentObjInit.ToArray(), destroyedObjects.ToArray(), objUpdates);
+            uint timeSinceReceived = (uint) (GetTimestamp() - currentClient.Value.lastTickTime);
+            ClientBoundData packet = new ClientBoundData(tick, currentClient.Value.lastClientTick, timeSinceReceived, currentObjInit.ToArray(), destroyedObjects.ToArray(), objUpdates);
             networker.SendPacket(ID_CLIENT_BOUND, PackageSerializer.GetBytes(packet), currentClient.Value.endPoint);
         }
     }
 
     public void PacketReceived(byte[] bytes, IPEndPoint endPoint) {
-        Debug.LogFormat("packet received: {0}, from {1}", PackageSerializer.encoding.GetString(bytes), endPoint);
         byte[] objectBytes = new byte[bytes.Length - 1];
 
         Array.Copy(bytes, 1, objectBytes, 0, bytes.Length - 1);
@@ -134,22 +157,16 @@ public class ServerManager : NetManager {
             return;
         }
         //valid client
-        playerInputs.Remove(package.clientId);
-        playerInputs.Add(package.clientId, package.input);
+        if (!frameInputs.ContainsKey(package.tick)) 
+            frameInputs[package.tick] = new FrameInputs(new Dictionary<uint, PlayerInput>());
+        frameInputs[package.tick].playerInputs[package.clientId] = package.input;
+        connected.lastClientTick = package.tick;
+        connected.lastTickTime = GetTimestamp();
+        connectedClients[package.clientId] = connected;
     }
 
     private void HandleLogin(Login login, IPEndPoint endPoint) {
         loginQueue.Add(login, endPoint);
         Debug.Log("Login detected: " + endPoint);
-    }
-
-    public bool PlayerInputExists(uint playerComponentID) {
-        return playerInputs.ContainsKey(playerComponentID);
-    }
-
-    public PlayerInput GetPlayerInput(uint playerComponentID) {
-        PlayerInput input;
-        playerInputs.TryGetValue(playerComponentID, out input);
-        return input;
     }
 }
